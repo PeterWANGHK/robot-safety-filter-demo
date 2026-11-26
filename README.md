@@ -47,7 +47,7 @@ recorded in [`data/comparison_validation.json`](data/comparison_validation.json)
 
 ## Rebuild the comparison
 
-The published HTML works by itself. To regenerate the fields and QP queries,
+To regenerate the fields and QP queries,
 use Python 3.11 or newer and fetch the original licensed model:
 
 ```bash
