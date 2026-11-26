@@ -82,11 +82,4 @@ a reproduction of the paper's hardware performance.
 
 Robot descriptions and derived proxy geometry originate from
 [Yang-Ci/ReBot_Arm_DigitalTwin_DM](https://github.com/Yang-Ci/ReBot_Arm_DigitalTwin_DM),
-with the model source pinned in the provenance document. Robot-model-derived
-assets retain **CERN-OHL-W-2.0** terms and notices. The demonstration also uses
-[Plotly](https://github.com/plotly/plotly.js),
-[KaTeX](https://github.com/KaTeX/KaTeX), and
-[SciencePlots](https://github.com/garrettj403/SciencePlots). Their applicable
-MIT notices are retained in [`LICENSES`](LICENSES/); these components do not
-relicense the robot model. No endorsement by the paper's authors, Seeed Studio,
-CERN or the library maintainers is implied.
+with the model source pinned in the provenance document. 
