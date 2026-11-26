@@ -10,17 +10,6 @@ distance-envelope method.
 
 ![The same arm pose with environment Poisson shells and an articulated robot envelope](field-comparison.png)
 
-## Run locally
-
-From this repository's directory:
-
-```bash
-python3 -m http.server 8000 --bind 127.0.0.1
-```
-
-Open [http://127.0.0.1:8000](http://127.0.0.1:8000). The same static files can be
-served by GitHub Pages. The browser view does not require ROS, a robot
-connection, or a simulator installation.
 
 ## What the comparison means
 
