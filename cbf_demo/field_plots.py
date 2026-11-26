@@ -371,12 +371,7 @@ This is not a force or clearance scale. Dark geometry: conservative arm collisio
 Arrows: direction of increasing <i>h</i>.</p>
 ''' + pose_control + joint_layer_controls(layer_data) + figure_html + joint_layer_details() + math_explanation_html(
     dict(grid_shape=field.shape, spacing_m=field.spacing, requested_inflation_m=field.inflation,
-         model=robot.geometry_metadata)) + '''<p>Scientific PNG/PDF figures use SciencePlots (science, no-latex, bright).
-This WebGL view uses matching serif typography and colors; Matplotlib styles do not apply to Plotly or RViz.
-The display crop reveals interior structure; the complete static PDE and numerical collar are unchanged.
-Path lines show the TCP; the filter checks body samples. Transparency can affect depth perception.</p>
-<p>Independent preliminary reproduction of <a href="https://arxiv.org/abs/2604.21189v1">Wilkinson et al.</a>;
-see the local guide for numerical and mobile-manipulator limitations. No network connection is needed to rotate this view.</p>
+         model=robot.geometry_metadata)) + '''
 </main><script>
 // Keep the scene usable in a narrow desktop side panel as well as a full tab.
 const fieldPlot=document.getElementById('safety-field-3d');
