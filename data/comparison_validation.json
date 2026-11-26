@@ -1,0 +1,32 @@
+{
+  "schema": "rebot-robot-centred-comparison-validation-v1",
+  "created_utc": "2026-11-26T12:24:15.923506+00:00",
+  "tests_passed": 89,
+  "recorded_poses": 41,
+  "nominal_commands_per_pose": 13,
+  "distance_margins_m": [
+    0.025,
+    0.05,
+    0.1
+  ],
+  "poisson_queries": 533,
+  "distance_queries": 1599,
+  "poisson_accepted": 533,
+  "distance_accepted": 1599,
+  "minimum_accepted_normalized_residual_rad_s": -1.4212461628415607e-07,
+  "initial_distance_margin_violations": 0,
+  "browser_checks": {
+    "equations": 22,
+    "equations_rendered": 22,
+    "math_errors": 0,
+    "console_errors_or_warnings": 0,
+    "linked_pose_and_load_controls": true,
+    "margin_selection": true,
+    "actual_paired_camera_drag_reviewed": true
+  },
+  "rebuild_script_executed": true,
+  "new_closed_loop_distance_rollouts": false,
+  "physics_advanced": false,
+  "hardware_commands_sent": false,
+  "source_telemetry": "Original fixed-base synthetic five-box scene, planner seed 7; replays and local command projections only."
+}

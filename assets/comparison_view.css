@@ -1,0 +1,18 @@
+#field-comparison{margin:2rem 0;padding-top:.8rem;border-top:1px solid #d8e1e8;color:#273340;line-height:1.55}
+#field-comparison h2{font-size:1.55rem;margin-bottom:.6rem}
+#field-comparison .comparison-control-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;max-width:1200px}
+#field-comparison fieldset{border:1px solid #cdd8e2;border-radius:8px;padding:.65rem .8rem}
+#field-comparison legend{font-weight:600;padding:0 .3rem}
+#field-comparison fieldset label{display:inline-flex;align-items:center;gap:.35rem;margin:.2rem 1rem .2rem 0;white-space:nowrap;font-size:.95rem}
+#field-comparison input[type=checkbox]{accent-color:#0072B2;width:1rem;height:1rem}
+#field-comparison .comparison-body-key{display:flex;flex-wrap:wrap;gap:.5rem 1.3rem;margin:.8rem 0;font-size:.9rem}
+#field-comparison .comparison-body-key span{display:inline-flex;align-items:center;gap:.4rem}
+#field-comparison .comparison-body-key i{display:inline-block;width:.85rem;height:.85rem;border-radius:2px}
+#field-comparison .comparison-pose-control{margin:.6rem 0}
+#field-comparison .comparison-pose-control label{display:block}
+#field-comparison #comparison-pose{display:block;width:min(850px,96%);accent-color:#0072B2;margin:.4rem 0}
+#field-comparison #field-comparison-3d{width:100%;min-height:600px}
+#field-comparison #comparison-pose-metrics{font-variant-numeric:tabular-nums;padding:.6rem .8rem;border-left:3px solid #AA3377;background:#f5f7fa;max-width:1200px}
+#field-comparison .comparison-scope{font-size:.94rem;max-width:1200px;color:#45596b}
+#field-comparison .comparison-status{font-size:.85rem;color:#526777}
+@media(max-width:767px){#field-comparison .comparison-control-grid{grid-template-columns:1fr}#field-comparison fieldset label{font-size:.9rem}#field-comparison #field-comparison-3d{min-height:1000px}}
