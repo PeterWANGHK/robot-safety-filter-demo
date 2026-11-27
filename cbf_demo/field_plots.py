@@ -297,12 +297,15 @@ def write_interactive_field(field, robot, destination, *, meshes=None, results=(
     from .math_explanation import math_explanation_html
     from .math_rendering import offline_math_assets, math_render_script
     from .comparison_view import build_comparison_data, comparison_fragment, comparison_script
+    from .derivation_data import build_derivation_data
+    from .derivation_tour import derivation_tour_script
     from .command_comparison import (build_command_comparison, command_comparison_fragment,
                                      command_comparison_script, comparison_math_fragment,
                                      plot_command_comparison)
     layer_data = build_joint_layer_data(robot, field, frames_data)
     comparison_data = build_comparison_data(robot, field, frames_data)
     command_data = build_command_comparison(robot, field, frames_data)
+    derivation_data = build_derivation_data(robot, field, frames_data, command_data=command_data)
     trace_indices = dict(arm=robot_trace_index, body=robot_trace_index+1)
     first = layer_data['frames'][0]
     origins = np.asarray(first['joint_origins_m'])
@@ -355,35 +358,40 @@ main{max-width:1550px;margin:auto}h1{font-size:28px;margin-bottom:8px}p{max-widt
 code{font-size:14px}a{color:#0072B2}.pose-control{padding:8px 0}
 #recorded-pose{width:min(700px,95%);accent-color:#0072B2}</style></head><body><main>
 <h1>Robot safety filter demo · B601</h1>
-<p>A fixed-base, six-joint arm in a synthetic cluttered scene. Compare a room-centred Poisson field
-with a safety envelope attached to the whole articulated arm, then inspect each filter's joint-command correction.</p>
-<nav aria-label="Demo sections"><a href="#field-comparison">Compare the fields</a> ·
-<a href="#command-comparison">Compare joint commands</a> ·
-<a href="#environment-detail">Joint loads and detailed field</a></nav>
+<p>From geometry to a safe joint-velocity constraint: learn one step at a time on the same six-joint arm.</p>
+<nav aria-label="Demo sections"><a href="#field-comparison">Interactive derivation</a> ·
+<a href="#command-comparison">Joint command table</a> ·
+<a href="#environment-detail">Joint-load explorer</a></nav>
 COMPARISON_FRAGMENT
 COMMAND_FRAGMENT
-COMPARISON_MATH
-<h2 id="environment-detail">Environment field and joint-load exploration</h2>
+<details id="environment-detail"><summary><strong>Explore joint loads and the full environment field</strong></summary>
 <p>Drag to rotate · Scroll to zoom · Click the legend to toggle shells, slices and arrows.
 The pose slider replays recorded arm states.</p>
 <p class="note">Each shell has constant barrier value <i>h</i> (m²); <i>h</i>=0 at buffered boundaries.
 This is not a force or clearance scale. Dark geometry: conservative arm collision boxes.
 Arrows: direction of increasing <i>h</i>.</p>
-''' + pose_control + joint_layer_controls(layer_data) + figure_html + joint_layer_details() + math_explanation_html(
+''' + pose_control + joint_layer_controls(layer_data) + figure_html + joint_layer_details() + '''</details>
+<details id="advanced-math-reference"><summary><strong>Detailed model reference (optional)</strong></summary>''' + comparison_math_fragment() + math_explanation_html(
     dict(grid_shape=field.shape, spacing_m=field.spacing, requested_inflation_m=field.inflation,
-         model=robot.geometry_metadata)) + '''
+         model=robot.geometry_metadata)) + '''</details>
 </main><script>
 // Keep the scene usable in a narrow desktop side panel as well as a full tab.
 const fieldPlot=document.getElementById('safety-field-3d');
 const poseControl=document.getElementById('recorded-pose');
 const poseLabels=POSE_LABELS_JSON;
-if(poseControl)poseControl.addEventListener('input',()=>{
-  document.getElementById('pose-label').textContent=poseLabels[Number(poseControl.value)];
-  Plotly.animate(fieldPlot,[String(poseControl.value)],{mode:'immediate',
+const detailedPanel=document.getElementById('environment-detail');
+function renderDetailedPose(){
+  if(!poseControl)return;
+  return Plotly.animate(fieldPlot,[String(poseControl.value)],{mode:'immediate',
     frame:{duration:0,redraw:true},transition:{duration:0}}).then(()=>{
       if(window.rebotUpdateJointLayer)window.rebotUpdateJointLayer();
     });
+}
+if(poseControl)poseControl.addEventListener('input',()=>{
+  document.getElementById('pose-label').textContent=poseLabels[Number(poseControl.value)];
+  if(detailedPanel.open)renderDetailedPose();
 });
+detailedPanel.addEventListener('toggle',()=>{if(detailedPanel.open){Plotly.Plots.resize(fieldPlot);renderDetailedPose();}});
 let lastNarrow=null;
 function fitFieldView(){
   const narrow=window.innerWidth<1050;
@@ -408,11 +416,13 @@ fitFieldView();window.addEventListener('resize',fitFieldView);
     document = document.replace('</head>', joint_layer_style()+'</head>')
     document = document.replace('</body>', offline_math_assets()+joint_layer_script(layer_data,trace_indices)
                                 +comparison_script(comparison_data)+command_comparison_script(command_data)
+                                +derivation_tour_script(derivation_data)
                                 +math_render_script()+'</body>')
     Path(destination).write_text(document)
     Path(destination).with_name('joint_load_layer.json').write_text(json.dumps(layer_data, indent=2)+'\n')
     Path(destination).with_name('field_comparison_data.json').write_text(json.dumps(comparison_data, separators=(',', ':'))+'\n')
     Path(destination).with_name('command_comparison_data.json').write_text(json.dumps(command_data, indent=2)+'\n')
+    Path(destination).with_name('derivation_data.json').write_text(json.dumps(derivation_data, separators=(',', ':'), allow_nan=False)+'\n')
     plot_command_comparison(command_data, Path(destination).with_name('filter_command_comparison.png'))
     return dict(isosurface_levels_m2=[m['level'] for m in meshes],
                 mesh_triangle_counts=[len(m['faces']) for m in meshes],
@@ -425,6 +435,7 @@ fitFieldView();window.addEventListener('resize',fitFieldView);
                 mathematics_rendered_offline=True,
                 parallel_comparison=dict(pose_count=len(frames_data), margins_m=comparison_data['margins_m'],
                                          command_cases_per_pose=len(command_data['command_names']),
+                                         guided_derivation=True,
                                          closed_loop_distance_comparison=False))
 
 

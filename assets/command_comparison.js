@@ -25,7 +25,11 @@
     diagnostic.textContent='Poisson: '+p.status+' ('+p.all_rows+' body-sample constraints); distance: '+d.status+' ('+d.all_rows+' box pairs). '+
       'Solver-checked commands: '+(p.success&&d.success?'both accepted. ':'a query was rejected; its zero output is not a safe-braking certificate. ')+
       'Initial distance-margin condition: '+(d.initial_margin_feasible?'satisfied.':'violated; a recovery command does not establish invariance.');
-    window.rebotComparisonCommands={pose_index:s.pose_index,margin_m:s.margin_m,nominal:c.nominal_tcp_m_s,poisson:p.tcp_velocity_m_s,distance:d.tcp_velocity_m_s};
+    window.rebotComparisonCommands={pose_index:s.pose_index,margin_m:s.margin_m,
+      command_index:Number(command.value)||0,
+      nominal:c.nominal_tcp_m_s,poisson:p.tcp_velocity_m_s,distance:d.tcp_velocity_m_s,
+      nominal_rad_s:c.nominal_rad_s,poisson_rad_s:p.velocity_rad_s,distance_rad_s:d.velocity_rad_s,
+      poisson_success:p.success,distance_success:d.success};
     window.dispatchEvent(new CustomEvent('rebot-comparison-command',{detail:window.rebotComparisonCommands}));
   }
   async function start(){
@@ -33,6 +37,7 @@
       if(typeof DecompressionStream==='undefined')throw Error('This browser lacks DecompressionStream. Open in a recent Chromium or Firefox browser.');
       const bytes=Uint8Array.from(atob(payload),x=>x.charCodeAt(0));
       data=await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).json();
+      window.rebotCommandComparisonData=data;
       data.command_names.forEach((name,i)=>{const option=document.createElement('option');option.value=i;option.textContent=name;command.append(option);});
       command.addEventListener('change',update);window.addEventListener('rebot-comparison-change',update);
       document.getElementById('comparison-example').addEventListener('click',()=>{

@@ -1,0 +1,36 @@
+.derivation-near-field{display:grid;grid-template-columns:minmax(0,1fr) 365px;gap:15px;align-items:start}
+.derivation-near-field .derivation-scene-area{min-width:0}
+#derivation-tour{position:sticky;top:12px;box-sizing:border-box;border:1px solid #cbd8e3;border-radius:10px;padding:12px;background:#fff;color:#233d52;font:15px/1.4 Georgia,serif;box-shadow:0 3px 12px rgba(24,58,84,.045)}
+#derivation-tour .dt-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+#derivation-tour h3{font-size:17px;line-height:1.2;margin:0;max-width:260px}
+#derivation-tour #derivation-count{white-space:nowrap;font-size:12px;color:#687b8c}
+#derivation-tour button,#derivation-tour select{font:inherit;cursor:pointer}
+#derivation-tour .dt-modes{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+#derivation-tour .dt-modes button{font-size:12px;border:1px solid #cbd8e3;border-radius:5px;background:#f6f8fa;color:#365066;padding:6px 3px}
+#derivation-tour .dt-modes button[aria-pressed=true]{border-color:#0072b2;background:#eaf5fc;color:#075e90;font-weight:bold}
+#derivation-tour .dt-region{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 0;font-size:12px}
+#derivation-tour .dt-region select{max-width:57%;min-width:0;padding:4px;border:1px solid #cbd8e3;border-radius:4px;background:white;font-size:12px;color:#233d52}
+#derivation-tour .dt-steps{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;margin:7px 0}
+#derivation-tour .dt-steps button{border:1px solid transparent;border-bottom:2px solid #d9e3eb;border-radius:3px;padding:4px 1px;background:#f8fafb;color:#546c80;font-size:11px;line-height:1.2;min-height:43px}
+#derivation-tour .dt-steps button span{display:block;font-weight:bold;margin-bottom:3px}
+#derivation-tour .dt-steps button[aria-current=step]{border-color:#b7d8eb;border-bottom-color:#0072b2;background:#edf7fd;color:#075e90}
+#derivation-tour .dt-context{margin:7px 0 5px;font:12.5px/1.3 system-ui,sans-serif;color:#61788a}
+#derivation-tour .dt-explanation{margin:0 0 5px;min-height:38px;font-size:14.5px}
+#derivation-tour .dt-equation{font-size:15px;overflow-x:auto;overflow-y:hidden;max-width:100%;padding:3px 0;background:#f8fafc;border-radius:4px;text-align:center;min-height:27px}
+#derivation-tour .dt-equation .katex{font-size:1em}
+#derivation-tour .dt-equation .katex-display{margin:.25em 0}
+#derivation-tour .dt-numbers{margin-top:5px;font:12.5px/1.45 ui-monospace,SFMono-Regular,Consolas,monospace;min-height:47px}
+#derivation-tour .dt-number{margin:2px 0;overflow-wrap:anywhere}
+#derivation-tour .dt-number-label{color:#61788a;margin-right:5px}
+#derivation-tour .dt-result{font:12px/1.35 system-ui,sans-serif;border-radius:4px;padding:3px 5px;margin-top:4px;background:#edf6f1;color:#1b6746}
+#derivation-tour .dt-result.dt-correction{background:#fff5e4;color:#89520f}
+#derivation-tour .dt-result.dt-unavailable{background:#f1f4f7;color:#61788a}
+#derivation-tour .dt-symbols{display:flex;flex-wrap:wrap;gap:9px;margin:7px 0 6px;font:12px/1.2 Georgia,serif}
+#derivation-tour .dt-symbols abbr{text-decoration:underline dotted #91a5b5;text-underline-offset:3px;cursor:help}
+#derivation-tour .dt-actions{display:flex;justify-content:space-between;gap:8px;margin-top:5px}
+#derivation-tour .dt-actions button{background:white;border:1px solid #c8d6e1;border-radius:4px;padding:4px 8px;font-size:12px;color:#285472}
+#derivation-tour .dt-actions button:disabled{opacity:.42;cursor:default}
+#derivation-tour .dt-scope{margin:7px 0 0;font:10px/1.3 system-ui,sans-serif;color:#6c8090}
+#derivation-tour button:focus-visible,#derivation-tour select:focus-visible,#derivation-tour abbr:focus-visible{outline:2px solid #0072b2;outline-offset:2px}
+@media(max-width:1100px){.derivation-near-field{grid-template-columns:minmax(0,1fr)}.derivation-near-field .derivation-scene-area{order:2}#derivation-tour{order:1;position:static;width:100%;padding:10px 12px;font-size:14.5px}#derivation-tour h3{max-width:none}#derivation-tour .dt-modes{max-width:420px}#derivation-tour .dt-region{max-width:420px}#derivation-tour .dt-steps{max-width:620px}#derivation-tour .dt-steps button{min-height:35px}#derivation-tour .dt-explanation{min-height:0}#derivation-tour .dt-numbers{min-height:0}#derivation-tour .dt-equation{text-align:left;padding-left:7px}#derivation-tour .dt-equation .katex-display{text-align:left}#derivation-tour .dt-actions{max-width:420px}}
+@media(max-width:520px){#derivation-tour .dt-heading h3{font-size:16px}#derivation-tour .dt-region{font-size:11px}#derivation-tour .dt-explanation{font-size:14px}#derivation-tour .dt-steps button{font-size:10.5px}#derivation-tour .dt-equation{font-size:14px}#derivation-tour .dt-numbers{font-size:12px}}

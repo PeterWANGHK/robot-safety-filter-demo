@@ -1,0 +1,79 @@
+{
+  "schema": "rebot-guided-derivation-validation-v1",
+  "created_utc": "2026-11-27T08:42:11.217401+00:00",
+  "scope": "Guided mathematical presentation and frozen-state query diagnostics; archival packaging only.",
+  "checks": {
+    "python_tests": {
+      "passed": 95,
+      "failed": 0,
+      "reported_seconds": 8.5,
+      "successful_runs": 2,
+      "evidence": "Parent agent tool results; no persisted test log was supplied."
+    },
+    "strict_katex": {
+      "equations_compiled": 10,
+      "errors": 0,
+      "renderer_version": "0.16.22",
+      "renderer_source": "Official vendored KaTeX distribution with retained integrity metadata.",
+      "evidence": "Independent agent strict compilation using local KaTeX and Node."
+    },
+    "javascript_harness": {
+      "assertions_passed": 7,
+      "failed": 0,
+      "evidence": "Independent agent Node runtime harness results."
+    },
+    "rebuild_demo": {
+      "script": "scripts/rebuild_demo.py",
+      "completed": true,
+      "outputs": "build/index.html and SciencePlots PNG/PDF figures",
+      "physics_advanced": false,
+      "evidence": "Parent agent successful rebuild tool result."
+    },
+    "archive_packaging": {
+      "new_controller_queries_solved": false,
+      "new_telemetry_created": false,
+      "physics_advanced": false,
+      "hardware_commands_sent": false
+    }
+  },
+  "frozen_data_provenance": {
+    "source_scene": "five static clutter boxes",
+    "source_seed": 7,
+    "recorded_scope": "Recorded fixed-base hierarchy simulation poses; no physical telemetry",
+    "model_source_commit": "914c763c4adffb5f5744c43ecffbf6199c282bd6",
+    "recorded_poses": 41,
+    "recorded_poses_source": "data/recorded_poses.json",
+    "recorded_poses_sha256": "b0c6b8ee421b7abbe7119fdad55a9e2e8b0b36c6ede86366abac04577146a16c",
+    "nominal_commands_per_pose": 13,
+    "distance_margins_m": [
+      0.025,
+      0.05,
+      0.1
+    ],
+    "poisson_queries": 533,
+    "distance_queries": 1599,
+    "poisson_accepted": 533,
+    "distance_accepted": 1599,
+    "poisson_original_geometry_rows": 798,
+    "distance_original_geometry_rows": 50,
+    "pose_and_timestamp_match_verified": true,
+    "derivation_reuses_precomputed_commands": true,
+    "new_closed_loop_distance_rollouts": false,
+    "comparison_archive": "comparison-data.zip",
+    "comparison_archive_sha256": "b03017720f9959c63cb1ec4409e5fe0bc9b68543d4c15bdb07745be2e6ef08b1",
+    "frozen_json_sha256": {
+      "field_comparison_data.json": "138b5fb01c37af48444c92f2ee97228dfb75d5fb51991328a84245ad8453ea1b",
+      "command_comparison_data.json": "94e0b52d3f3f08a4dc2a0807edb1396df04c3d58279df2ebbd484563f60a4721",
+      "derivation_data.json": "a94c944e79d5cfb905d41a4c00907403f7c1aef70009ea240ac9dba778d4e904",
+      "joint_load_layer.json": "6db34f0e984fedd0352ac988111f033ce7dbc8ce41fbbcf847ef2990c6e95f77"
+    }
+  },
+  "limitations": [
+    "Unit and browser checks do not establish continuous-time or hardware safety.",
+    "The distance-filter comparison consists of independent frozen-state velocity projections, not new closed-loop rollouts.",
+    "Displayed selected rows are explanatory; arithmetic minima retain all original geometry inequalities.",
+    "The guided presentation and archive packaging did not advance physics, start ROS or send hardware commands."
+  ],
+  "manifest": "data/source_manifest.json",
+  "manifest_excludes_self": true
+}

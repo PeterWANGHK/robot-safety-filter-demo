@@ -9,11 +9,19 @@ const poseLabel = document.getElementById('comparison-pose-label');
 const metrics = document.getElementById('comparison-pose-metrics');
 const status = document.getElementById('comparison-status');
 const activeMarginLabel = document.getElementById('comparison-active-margin');
+const offsetSelector=document.getElementById('comparison-active-offset');
+const sceneSelector=document.getElementById('comparison-scene-layout');
 let activeMargin=data.default_margin_m;
 const initial = data.frames[0];
 const dynamicMeshes = [], dynamicLines = [], environmentIndices = [], marginIndices = [];
 const commandLines=[],commandHeads=[];
+const derivationTraces=[];
 let commandPayload=null,graphReady=false;
+let guidancePayload=null,guidedMode='poisson',lastFit=null;
+window.addEventListener('rebot-derivation-step',event=>{
+  guidancePayload=event.detail;guidedMode=guidancePayload.mode||'poisson';
+  if(graphReady){fitComparison();renderGuidance(guidancePayload).catch(error=>console.error('Derivation overlay',error));}
+});
 const traces = [];
 const clone = value => JSON.parse(JSON.stringify(value));
 function coordinates(vertices) {
@@ -55,7 +63,7 @@ for(const scene of ['scene','scene2']){
   dynamicLines.push({index:traces.length,kind:'nearest',scene});
   traces.push({type:'scatter3d',...coordinates(initial.nearest.points_m),scene,mode:'lines+markers',
                line:{color:'#AA3377',width:5,dash:'dash'},marker:{color:'#AA3377',size:3},
-               name:'Nearest whole-box pair',showlegend:false,hoverinfo:'name'});
+               name:'Selected surface pair',showlegend:false,hoverinfo:'name'});
   if(scene==='scene2') for(let index=0;index<data.margins_m.length;index++){
     const shell=initial.shells[index],margin=data.margins_m[index];
     marginIndices.push(traces.length);
@@ -74,6 +82,17 @@ for(const scene of ['scene','scene2']){
                sizemode:'absolute',sizeref:.022,showscale:false,
                colorscale:[[0,commandColor],[1,commandColor]],
                name:'Instantaneous TCP velocity arrowhead',showlegend:false,hoverinfo:'name'});
+  for(const kind of ['outline','points','direction']){
+    derivationTraces.push({index:traces.length,scene,kind});
+    traces.push({type:'scatter3d',x:[],y:[],z:[],text:[],scene,
+      mode:kind==='outline'?'lines':kind==='points'?'markers+text':'lines+text',
+      marker:{size:7,color:'#D55E00'},line:{color:'#D55E00',width:kind==='outline'?5:7},
+      textposition:'top center',textfont:{size:14,color:'#8A3500'},
+      name:kind==='direction'?'Selected gradient / normal direction':'Selected mathematical geometry',showlegend:false,hoverinfo:'text'});
+  }
+  derivationTraces.push({index:traces.length,scene,kind:'cone'});
+  traces.push({type:'cone',x:[],y:[],z:[],u:[],v:[],w:[],scene,anchor:'tip',sizemode:'absolute',sizeref:.025,
+    colorscale:[[0,'#D55E00'],[1,'#D55E00']],showscale:false,showlegend:false,name:'Gradient or normal; not a force',hoverinfo:'name'});
 }
 const bounds=data.display_bounds_m;
 const camera={eye:{x:1.5,y:-1.75,z:1.15},center:{x:0,y:0,z:0},up:{x:0,y:0,z:1}};
@@ -105,17 +124,31 @@ graph.on('plotly_relayout',event=>{
     .finally(()=>{cameraBusy=false;});
 });
 function fitComparison(){
-  const narrow=window.innerWidth<768;
-  const annotations=narrow?
+  const width=graph.parentElement.getBoundingClientRect().width;
+  const requested=sceneSelector?.value||'auto';
+  const view=requested==='auto'?(width>=920?'both':guidedMode):requested;
+  const narrow=width<650;
+  const key=view+'|'+narrow;
+  if(key===lastFit)return;
+  lastFit=key;
+  const annotations=view!=='both'?
+    [{text:view==='poisson'?'Environment Poisson · H (m²)':'Articulated arm envelope · dR (m)',x:.5,y:1.025,xref:'paper',yref:'paper',showarrow:false}]:narrow?
     [{text:'Environment Poisson · h (m²)',x:.5,y:1.01,xref:'paper',yref:'paper',showarrow:false},
      {text:'Robot-centred exterior distance · dR (m)',x:.5,y:.485,xref:'paper',yref:'paper',showarrow:false}]:
     [{text:'Environment Poisson · h (m²)',x:.235,y:1.035,xref:'paper',yref:'paper',showarrow:false},
      {text:'Robot-centred exterior distance · dR (m)',x:.765,y:1.035,xref:'paper',yref:'paper',showarrow:false}];
-  Plotly.relayout(graph,{'scene.domain':narrow?{x:[0,1],y:[.54,1]}:{x:[0,.48],y:[0,1]},
-                         'scene2.domain':narrow?{x:[0,1],y:[0,.46]}:{x:[.52,1],y:[0,1]},
-                         height:narrow?1100:700,annotations});
+  const full={x:[0,1],y:[0,1]},hidden={x:[0,1],y:[0,.000001]};
+  const settings={'scene.domain':view==='both'?(narrow?{x:[0,1],y:[.54,1]}:{x:[0,.48],y:[0,1]}):(view==='poisson'?full:hidden),
+    'scene2.domain':view==='both'?(narrow?{x:[0,1],y:[0,.46]}:{x:[.52,1],y:[0,1]}):(view==='distance'?full:hidden),
+    height:view==='both'&&narrow?950:560,annotations};
+  for(const scene of ['scene','scene2'])for(const axis of ['xaxis','yaxis','zaxis'])
+    settings[scene+'.'+axis+'.visible']=view==='both'||(view==='poisson'?scene==='scene':scene==='scene2');
+  Plotly.relayout(graph,settings);
+  graph.dataset.sceneView=view;
 }
 fitComparison();window.addEventListener('resize',fitComparison);
+if(sceneSelector)sceneSelector.addEventListener('change',fitComparison);
+if(window.ResizeObserver)new ResizeObserver(()=>{fitComparison();Plotly.Plots.resize(graph);}).observe(graph.parentElement);
 for(const checkbox of document.querySelectorAll('.comparison-poisson-toggle')){
   checkbox.addEventListener('change',()=>Plotly.restyle(graph,{visible:checkbox.checked},
                              [environmentIndices[Number(checkbox.dataset.index)]]));
@@ -131,10 +164,20 @@ for(const checkbox of document.querySelectorAll('.comparison-margin-toggle')){
     publishComparisonState();
   });
 }
+if(offsetSelector)offsetSelector.addEventListener('change',()=>{
+  activeMargin=Number(offsetSelector.value);
+  const visible=[];
+  for(const input of document.querySelectorAll('.comparison-margin-toggle')){
+    input.checked=data.margins_m[Number(input.dataset.index)]===activeMargin;
+    visible.push(input.checked);
+  }
+  Plotly.restyle(graph,{visible},marginIndices);publishComparisonState();
+});
 function publishComparisonState(){
   const visible=[...document.querySelectorAll('.comparison-margin-toggle')]
     .filter(input=>input.checked).map(input=>data.margins_m[Number(input.dataset.index)]);
   activeMarginLabel.textContent=`${(100*activeMargin).toFixed(1).replace(/\.0$/,'')} cm`;
+  if(offsetSelector)offsetSelector.value=String(activeMargin);
   const detail={pose_index:current,margin_m:activeMargin,visible_margins_m:visible,
                 additional_visible_margins_m:visible.filter(m=>m!==activeMargin)};
   window.rebotComparisonState=detail;
@@ -146,10 +189,8 @@ function updateDescription(index){
   poseLabel.textContent=`${index===0?'Initial pose · ':''}${frame.time_s.toFixed(2)} s · snapshot ${index+1}/${data.frames.length}`;
   const nearest=frame.nearest;
   const clearance=nearest.clearance_m===null?'not defined':`${(100*nearest.clearance_m).toFixed(2)} cm`;
-  metrics.textContent=`Same pose in both scenes. Minimum full-box clearance: ${clearance}`+
-    (nearest.robot_body?` (${nearest.robot_body} ↔ ${nearest.obstacle}). `:'. ')+
-    `Minimum sampled Poisson h: ${frame.min_h_m2.toExponential(3)} m². `+
-    `Robot shells: ${data.margins_m.map(m=>`${100*m} cm`).join(', ')} exterior offsets.`;
+  metrics.textContent=`Whole-arm minimum clearance: ${clearance}. `+
+    `Lowest sampled H: ${frame.min_h_m2.toExponential(3)} m². Orange: the geometry used in this lesson.`;
   graph.dataset.poseIndex=String(index);
 }
 let pending=null,updating=false,current=0;
@@ -206,6 +247,58 @@ window.rebotComparisonPose=index=>{
   return finished;
 };
 window.rebotComparisonGraph=graph;
+async function renderGuidance(payload){
+  if(!payload||Number(payload.pose_index)!==current)return;
+  graph.dataset.guidance=JSON.stringify({stage:payload.stage,mode:payload.mode,body:payload.body,pose_index:payload.pose_index});
+  const frame=data.frames[current],target=payload.mode==='distance'?'scene2':'scene';
+  const point=payload.point_m,other=payload.obstacle_point_m;
+  const valid=p=>Array.isArray(p)&&p.length===3&&p.every(Number.isFinite);
+  const body=(data.body_names||[]).indexOf(payload.body),stage=Number(payload.stage);
+  const direction=payload.direction_world||[0,0,0],length=Math.hypot(...direction);
+  const end=valid(point)&&length>1e-12?point.map((p,i)=>p+.13*direction[i]/length):null;
+  const updates={x:[],y:[],z:[],text:[]},indices=[];
+  for(const item of derivationTraces.filter(t=>t.kind!=='cone')){
+    let vertices=[],labels=[];
+    if(item.kind==='outline'&&body>=0){
+      for(const edge of data.arm_edges){
+        if(Math.floor(edge[0]/8)!==body)continue;
+        vertices.push(frame.arm_vertices[edge[0]],frame.arm_vertices[edge[1]],null);
+      }
+    }else if(item.kind==='points'&&item.scene===target&&valid(point)){
+      vertices=[point];labels=[payload.mode==='distance'?'p_R':'pᵢ'];
+      if(payload.mode==='distance'&&valid(other)){vertices.push(other);labels.push('p_O');}
+      if(stage===1)labels[0]+=' · b = '+Number(payload.barrier_value).toExponential(2)+' '+(payload.barrier_units||'');
+    }else if(item.kind==='direction'&&item.scene===target&&end&&stage>=2&&stage<=3){
+      vertices=[point,end];labels=['',payload.mode==='distance'?'n':'∇H'];
+    }
+    for(const [axis,key]of ['x','y','z'].entries())updates[key].push(vertices.map(v=>v===null?null:v[axis]));
+    updates.text.push(labels);indices.push(item.index);
+  }
+  for(const item of dynamicLines.filter(t=>t.kind==='nearest')){
+    const vertices=payload.mode==='distance'&&valid(point)&&valid(other)?[point,other]:[];
+    for(const [axis,key]of ['x','y','z'].entries())updates[key].push(vertices.map(v=>v[axis]));
+    updates.text.push([]);indices.push(item.index);
+  }
+  await Plotly.restyle(graph,updates,indices);
+  const cones=derivationTraces.filter(t=>t.kind==='cone'),c={x:[],y:[],z:[],u:[],v:[],w:[]};
+  for(const item of cones){
+    const shown=item.scene===target&&end&&stage>=2&&stage<=3;
+    for(const [axis,key]of ['x','y','z'].entries())c[key].push(shown?[end[axis]]:[]);
+    for(const [axis,key]of ['u','v','w'].entries())c[key].push(shown?[direction[axis]/length]:[]);
+  }
+  await Plotly.restyle(graph,c,cones.map(t=>t.index));
+  const annotations=[];
+  const labelAt=(p,text,ax,ay)=>({x:p[0],y:p[1],z:p[2],text,showarrow:true,arrowhead:2,
+    ax,ay,arrowcolor:'#D55E00',arrowsize:1,arrowwidth:2,font:{size:15,color:'#8A3500'},
+    bgcolor:'rgba(255,255,255,.96)',bordercolor:'#D55E00',borderpad:4});
+  if(valid(point))annotations.push(labelAt(point,payload.mode==='distance'?'p_R · '+payload.body:'pᵢ · '+payload.body,-50,-45));
+  if(payload.mode==='distance'&&valid(other))annotations.push(labelAt(other,'p_O · '+payload.obstacle,65,35));
+  if(end&&stage>=2&&stage<=3)annotations.push(labelAt(end,payload.mode==='distance'?'n · outward normal':'∇H · increasing field',-55,25));
+  await Plotly.relayout(graph,{'scene.annotations':target==='scene'?annotations:[],
+    'scene2.annotations':target==='scene2'?annotations:[]});
+  graph.dataset.guidanceRendered=String(stage);
+  if(commandPayload)await renderCommandArrows(commandPayload);
+}
 async function renderCommandArrows(payload){
   commandPayload=payload;
   if(!graphReady||Number(payload.pose_index)!==current)return;
@@ -213,7 +306,8 @@ async function renderCommandArrows(payload){
   const lineUpdates={x:[],y:[],z:[]},headUpdates={x:[],y:[],z:[],u:[],v:[],w:[]};
   for(const item of commandLines){
     const velocity=item.scene==='scene'?payload.poisson:payload.distance;
-    const valid=Array.isArray(velocity)&&velocity.length===3&&velocity.every(Number.isFinite);
+    const accepted=item.scene==='scene'?payload.poisson_success:payload.distance_success;
+    const valid=(!guidancePayload||guidancePayload.stage===4)&&accepted!==false&&Array.isArray(velocity)&&velocity.length===3&&velocity.every(Number.isFinite);
     const end=valid?start.map((value,index)=>value+.25*velocity[index]):start;
     for(const [axis,key] of ['x','y','z'].entries())lineUpdates[key].push(valid?[start[axis],end[axis]]:[]);
     const magnitude=valid?Math.hypot(...velocity):0;
@@ -229,5 +323,5 @@ window.addEventListener('rebot-comparison-command',event=>{
 updateDescription(nativePose?Number(nativePose.value):0);
 if(nativePose&&Number(nativePose.value)!==0)await applyPose(nativePose.value);
 publishComparisonState();
-status.textContent=`${data.frames.length} cached recorded poses · cameras synchronized · no physics stepped · `+
-  `distance display grid ${100*data.distance_grid_spacing_m} cm, marching-cubes stride ${data.marching_cubes_stride}`;
+if(guidancePayload)renderGuidance(guidancePayload);
+status.textContent=`${data.frames.length} recorded poses · displayed commands are independent queries at each pose`;

@@ -153,6 +153,7 @@ def build_comparison_data(robot, field, frames, *, margins=(0.025, 0.05, 0.10),
                 margins_m=list(margins), default_margin_m=min(margins, key=lambda value: abs(value-.05)),
                 arm_faces=body_faces.tolist(), arm_edges=body_edges.tolist(),
                 arm_face_colors=face_colors, body_groups=groups,
+                body_names=[box.body_name for box in robot.proxy_boxes],
                 body_group_definitions={key: dict(label=value['label'], color=value['color'])
                                         for key, value in BODY_GROUPS.items()},
                 display_bounds_m=np.asarray(DEFAULT_DISPLAY_BOUNDS).tolist(),
@@ -179,32 +180,32 @@ def comparison_fragment(data):
                      + html.escape(definition['label']) + '</span>'
                      for definition in data['body_group_definitions'].values())
     style = (_ASSETS/'comparison_view.css').read_text(encoding='utf-8')
+    from .derivation_tour import derivation_tour_fragment
+    margin_options = ''.join('<option value="'+str(m)+'"'+(' selected' if m == data['default_margin_m'] else '')+'>'+f'{m*100:g} cm'+'</option>' for m in data['margins_m'])
     return '<style>'+style+'</style>'+'''<section id="field-comparison" aria-labelledby="field-comparison-heading">
-<h2 id="field-comparison-heading">Environment field and robot-centred safety envelope</h2>
-<p>The two views share the same arm pose, obstacles, metric axes and camera.
-Drag either scene to rotate both. The left Poisson shells stay fixed in the room;
-the right distance envelope follows every articulated link, including the elbow and wrist.</p>
+<h2 id="field-comparison-heading">Build the safety rule in 3D</h2>
+<p>Follow the five steps beside the field. Change a pose or command to see the numbers change.</p>
+<details class="comparison-display-settings"><summary>Show field shells and body colors</summary>
 <div class="comparison-control-grid"><fieldset><legend>Environment Poisson h (m²)</legend>'''+environment_controls+'''
 </fieldset><fieldset><legend>Robot exterior distance d<sub>R</sub> (metres)</legend>'''+margin_controls+'''
-</fieldset></div><p class="comparison-active-margin">Active command-comparison margin:
+</fieldset></div><p class="comparison-active-margin">Active arm margin:
 <output id="comparison-active-margin">'''+f'{100*data["default_margin_m"]:g}'+''' cm</output>.
-The latest checked shell selects this margin; other checked shells are visual overlays.</p>
+The latest checked shell selects the margin.</p>
 <div class="comparison-body-key" aria-label="Matching body groups">'''+groups+'''
-</div><div class="comparison-pose-control"><label for="comparison-pose">Shared recorded pose:
+</div></details><div class="comparison-pose-control"><label for="comparison-pose">Recorded arm pose:
 <output id="comparison-pose-label">Initial pose</output></label>
 <input id="comparison-pose" type="range" min="0" max="'''+str(len(data['frames'])-1)+'''" step="1" value="0"
 aria-label="Shared arm pose in both field representations"></div>
+<div class="comparison-controlbar">
+<label>Requested motion <select id="comparison-command"></select></label>
+<button id="comparison-example" type="button">Show an example correction</button>
+<label>Arm margin <select id="comparison-active-offset">'''+margin_options+'''</select></label>
+<label>3D view <select id="comparison-scene-layout"><option value="auto">Guided view</option><option value="both">Both fields</option><option value="poisson">Environment field</option><option value="distance">Arm envelope</option></select></label>
+</div><div class="derivation-near-field"><div class="derivation-scene-area">
 <div id="field-comparison-3d" role="img" aria-label="Synchronized environment Poisson and robot distance field scenes"></div>
 <p id="comparison-pose-metrics" aria-live="polite"></p>
-<p class="comparison-velocity-key">When a command is selected, the blue arrow on the left and teal arrow on the right
-show the corresponding filtered <strong>instantaneous TCP velocity × 0.25 s</strong>.
-They are local command illustrations, not planned paths or predicted trajectories.</p>
-<p class="comparison-scope">Right-hand shells are the positive-distance offset of the union of full oriented robot boxes,
-not balls around joint centres. The dashed segment joins the nearest robot/obstacle pair.
-An obstacle entering an offset envelope is within that chosen margin. This is a coarse display
-of a distance representation, not the same CBF certificate as the left Poisson field.
-The current recorded controller remains the environment-Poisson velocity filter; selecting a shell
-does not change its constraints, add payload geometry, or apply a force.</p>
+<p class="comparison-velocity-key">Arrows show gradient/normal direction or instantaneous TCP velocity, as labeled.</p>
+</div>'''+derivation_tour_fragment()+'''</div>
 <p class="comparison-status" id="comparison-status" role="status">Preparing cached 3D comparison…</p></section>'''
 
 

@@ -68,24 +68,14 @@ def _result(result, tcp_jac):
 
 
 def command_comparison_fragment():
-    return '''<section id="command-comparison" class="note">
-<h2>What does each filter do to a joint command?</h2>
-<p>Select a nominal command at the displayed pose. Both QPs use the same joint state,
-velocity bounds (±0.45 rad/s), gain (2 s⁻¹), and objective. The distance filter uses
-the selected arm-envelope margin. The Poisson buffer and numerical collar retain
-their original values, so equal conservatism is not assumed.</p>
-<label for="comparison-command">Nominal motion </label><select id="comparison-command"></select>
-<button id="comparison-example" type="button" style="margin-left:12px">Show an example correction</button>
+    return '''<details id="command-comparison" class="note">
+<summary><strong>Six-joint command values</strong></summary>
 <p id="command-comparison-summary" role="status">Loading the precomputed command projections…</p>
 <div style="overflow-x:auto"><table id="comparison-command-table" style="border-collapse:collapse;width:100%;max-width:950px">
 <thead><tr><th>Joint velocity (rad/s)</th><th>Nominal</th><th>Environment Poisson CBF</th><th>Arm distance CBF</th></tr></thead><tbody></tbody></table></div>
 <p id="comparison-command-diagnostics"></p>
-<p><strong>Local queries, not motion playback:</strong> these commands were solved independently
-at frozen recorded states; selecting one does not simulate its subsequent trajectory.
-The pose replay above remains the original planner + Poisson CBF experiment.
-The distance filter checks all 10 arm-box × 5 obstacle-box pairs, using positive-separation witnesses.
-It does not check self-collision, grasped-object geometry, moving obstacles or braking distance.</p>
-</section>'''
+<p>Independent command queries at frozen recorded poses; selecting a command does not execute a trajectory.</p>
+</details>'''
 
 
 def command_comparison_script(data):
