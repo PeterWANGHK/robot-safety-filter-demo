@@ -15,10 +15,20 @@
 #field-comparison #comparison-pose-metrics{font-variant-numeric:tabular-nums;padding:.6rem .8rem;border-left:3px solid #AA3377;background:#f5f7fa;max-width:1200px}
 #field-comparison .comparison-scope{font-size:.94rem;max-width:1200px;color:#45596b}
 #field-comparison .comparison-status{font-size:.85rem;color:#526777}
+#field-comparison .comparison-appearance{margin:.6rem 0}
+#field-comparison .comparison-appearance .comparison-opacity{display:inline-flex;gap:.45rem;white-space:normal}
+#field-comparison #comparison-mesh-opacity{width:115px;accent-color:#0072B2}
+#field-comparison #comparison-mesh-opacity-value{min-width:2.7rem;font-variant-numeric:tabular-nums}
+#field-comparison .comparison-appearance-note{font-size:.82rem;color:#526777;line-height:1.4;margin:.3rem 0 0}
+#field-comparison #comparison-visual-model-note:empty{display:none}
+#field-comparison .comparison-visual-mismatch{border-left:3px solid #D55E00;padding-left:.5rem}
 .comparison-display-settings{font-size:.88rem;margin:.6rem 0}.comparison-display-settings summary{cursor:pointer}
 .comparison-controlbar{display:flex;align-items:end;gap:.6rem 1rem;flex-wrap:wrap;margin:.75rem 0}
 .comparison-controlbar label{display:grid;gap:.2rem;font-size:.86rem}.comparison-controlbar select,.comparison-controlbar button{font:inherit;padding:.4rem .55rem;border:1px solid #b8c7d5;border-radius:6px;background:#fff;color:#273340}
 .comparison-controlbar button{cursor:pointer;background:#edf5fb;min-height:2.2rem}
+#field-comparison .comparison-camera-actions{display:inline-flex;gap:.35rem}
+#field-comparison .comparison-camera-actions button{padding:.4rem .5rem;font-size:.82rem;white-space:nowrap}
+#field-comparison #comparison-reset-scene{background:#fff}
 #field-comparison .comparison-velocity-key{font-size:.82rem;margin:.2rem .6rem;color:#526777}
 #field-comparison #comparison-pose-metrics{font-size:.82rem;margin:.3rem 0;line-height:1.4}
 @media(max-width:767px){#field-comparison .comparison-control-grid{grid-template-columns:1fr}#field-comparison fieldset label{font-size:.9rem}#field-comparison #field-comparison-3d{min-height:500px}}

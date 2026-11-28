@@ -167,6 +167,14 @@ def build_comparison_data(robot, field, frames, *, margins=(0.025, 0.05, 0.10),
 
 def comparison_fragment(data):
     """HTML controls/plot container; no Plotly bundle or executable payload."""
+    has_visual = bool((data.get('visual_model') or {}).get('meshes'))
+    appearance_controls = '''<fieldset class="comparison-appearance"><legend>Arm appearance</legend>
+<label><input id="comparison-show-visual" type="checkbox"'''+(' checked' if has_visual else ' disabled')+'''> Official visual meshes</label>
+<label><input id="comparison-show-proxies" type="checkbox"'''+('' if has_visual else ' checked')+'''> Collision proxy boxes</label>
+<label class="comparison-opacity">Mesh opacity <input id="comparison-mesh-opacity" type="range" min="0.25" max="1" step="0.05" value="1"'''+('' if has_visual else ' disabled')+''' aria-label="Arm visual mesh opacity"><output id="comparison-mesh-opacity-value">100%</output></label>
+<p class="comparison-appearance-note">Visual meshes show the arm’s appearance. Padded proxy boxes remain the controller geometry; the orange lesson outline highlights a selected proxy.</p>
+<p id="comparison-visual-model-note" class="comparison-appearance-note" role="status"></p>
+</fieldset>'''
     environment_controls = ''.join(
         '<label><input type="checkbox" class="comparison-poisson-toggle" data-index="'
         + str(index) + '" checked> h = ' + f'{mesh["level_m2"]:g}' + ' m²</label>'
@@ -185,13 +193,13 @@ def comparison_fragment(data):
     return '<style>'+style+'</style>'+'''<section id="field-comparison" aria-labelledby="field-comparison-heading">
 <h2 id="field-comparison-heading">Build the safety rule in 3D</h2>
 <p>Follow the five steps beside the field. Change a pose or command to see the numbers change.</p>
-<details class="comparison-display-settings"><summary>Show field shells and body colors</summary>
-<div class="comparison-control-grid"><fieldset><legend>Environment Poisson h (m²)</legend>'''+environment_controls+'''
+<details class="comparison-display-settings"><summary>Arm appearance and field shells</summary>
+'''+appearance_controls+'''<div class="comparison-control-grid"><fieldset><legend>Environment Poisson h (m²)</legend>'''+environment_controls+'''
 </fieldset><fieldset><legend>Robot exterior distance d<sub>R</sub> (metres)</legend>'''+margin_controls+'''
 </fieldset></div><p class="comparison-active-margin">Active arm margin:
 <output id="comparison-active-margin">'''+f'{100*data["default_margin_m"]:g}'+''' cm</output>.
 The latest checked shell selects the margin.</p>
-<div class="comparison-body-key" aria-label="Matching body groups">'''+groups+'''
+<div class="comparison-body-key" aria-label="Collision proxy body groups"><strong>Proxy colors:</strong>'''+groups+'''
 </div></details><div class="comparison-pose-control"><label for="comparison-pose">Recorded arm pose:
 <output id="comparison-pose-label">Initial pose</output></label>
 <input id="comparison-pose" type="range" min="0" max="'''+str(len(data['frames'])-1)+'''" step="1" value="0"
@@ -201,6 +209,7 @@ aria-label="Shared arm pose in both field representations"></div>
 <button id="comparison-example" type="button">Show an example correction</button>
 <label>Arm margin <select id="comparison-active-offset">'''+margin_options+'''</select></label>
 <label>3D view <select id="comparison-scene-layout"><option value="auto">Guided view</option><option value="both">Both fields</option><option value="poisson">Environment field</option><option value="distance">Arm envelope</option></select></label>
+<span class="comparison-camera-actions"><button id="comparison-focus-arm" type="button" title="Centre a closer view on the current arm pose">Focus arm</button><button id="comparison-reset-scene" type="button" title="Restore the original room view">Reset scene</button></span>
 </div><div class="derivation-near-field"><div class="derivation-scene-area">
 <div id="field-comparison-3d" role="img" aria-label="Synchronized environment Poisson and robot distance field scenes"></div>
 <p id="comparison-pose-metrics" aria-live="polite"></p>

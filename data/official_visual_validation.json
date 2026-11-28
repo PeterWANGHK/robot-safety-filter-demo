@@ -1,0 +1,88 @@
+{
+  "schema": "rebot-official-visual-validation-v1",
+  "created_utc": "2026-11-28T04:52:21.676403+00:00",
+  "scope": "Official URDF appearance and educational research roadmap; replay of the existing frozen simulation, not a new control experiment.",
+  "checks": {
+    "python_tests": {
+      "passed": 102,
+      "failed": 0,
+      "reported_seconds": 16.76,
+      "includes_official_urdf_tests": 6,
+      "includes_async_javascript_runtime_harness_tests": 1,
+      "evidence": "Parent agent full pytest tool result; no persisted test log was supplied."
+    },
+    "official_visual_model": {
+      "material_parts": 34,
+      "source_triangles": 430912,
+      "display_triangles": 95464,
+      "recorded_fk_poses_checked": 41,
+      "max_link_position_error_m": 5.268082971747141e-11,
+      "max_link_rotation_error_rad": 2.1073424255447017e-08,
+      "kinematics_match": true,
+      "all_source_mesh_sha256_match_recorded_source": true,
+      "display_only": true,
+      "collision_proxies_unchanged": true,
+      "simplification": "Deterministic vertex clustering; all material parts retained. This is a display mesh, not a conservative collision mesh or a surface Hausdorff bound."
+    },
+    "strict_roadmap_katex": {
+      "equations_compiled": 6,
+      "errors": 0,
+      "evidence": "Independent agent strict KaTeX compilation."
+    },
+    "reference_review": {
+      "verified_primary_paper_code_pairs": 8,
+      "external_method_packages_installed": false,
+      "external_methods_reproduced_or_benchmarked": false,
+      "scope": "Targeted primary-source educational reading list; no claim of a complete systematic review."
+    },
+    "portable_rebuild": {
+      "script": "scripts/rebuild_demo.py",
+      "completed": true,
+      "outputs": "build/index.html and SciencePlots PNG/PDF figures",
+      "physics_advanced": false,
+      "evidence": "Parent agent successful exit-0 tool result: Wrote build/index.html and SciencePlots PNG/PDF figures. No physics advanced."
+    },
+    "archive_packaging": {
+      "physics_advanced": false,
+      "new_telemetry_created": false,
+      "hardware_commands_sent": false,
+      "camera_driver_started": false
+    }
+  },
+  "frozen_data_provenance": {
+    "pose_source": "Existing 41 recorded fixed-base hierarchy states; no physical telemetry.",
+    "official_visual_repository": "https://github.com/Seeed-Projects/reBotArmController_ROS2",
+    "official_visual_commit": "4a2b31b569d7856ea310b90f24f7de82374dbc75",
+    "recorded_model_repository": "https://github.com/Yang-Ci/ReBot_Arm_DigitalTwin_DM",
+    "recorded_model_commit": "914c763c4adffb5f5744c43ecffbf6199c282bd6",
+    "prior_field_geometry_verified_unchanged": true,
+    "prior_command_solutions_verified_unchanged": true,
+    "regenerated_command_queries": "Frozen-state query regeneration agreed on solutions; only solve_ms timings differed. The original command JSON and corresponding HTML payload were reused, preserving every prior command and timing.",
+    "prior_commands_and_timings_byte_preserved": true,
+    "command_comparison_data_sha256": "94e0b52d3f3f08a4dc2a0807edb1396df04c3d58279df2ebbd484563f60a4721",
+    "comparison_archive": "comparison-data.zip",
+    "comparison_archive_sha256": "ac67261568dc7428d82fd249dfe495859f66af4191892c634506993d565a3cfb",
+    "frozen_json_sha256": {
+      "command_comparison_data.json": "94e0b52d3f3f08a4dc2a0807edb1396df04c3d58279df2ebbd484563f60a4721",
+      "derivation_data.json": "a94c944e79d5cfb905d41a4c00907403f7c1aef70009ea240ac9dba778d4e904",
+      "field_comparison_data.json": "382f65b4696f2a14cee4d3c90cb055811c70bc45eea252c25f002379614f3810",
+      "field_methods.json": "16438c6f61ac0152eafd661026840046888eb179cba142cdfc158aa82251a429",
+      "joint_load_layer.json": "6db34f0e984fedd0352ac988111f033ce7dbc8ce41fbbcf847ef2990c6e95f77",
+      "visual_model_data.json": "542032ae6b9598dccca20632695552ad9d80ac2b7f2d652440f0702ff4802175"
+    },
+    "no_new_closed_loop_rollouts": true
+  },
+  "licensing": {
+    "source_mesh_derivation": "Rendered meshes are derived from the existing Yang-Ci CERN-OHL-W-2.0 copy after verifying identical SHA-256 hashes against the official Seeed-hosted files.",
+    "official_package_declaration": "Apache-2.0 is declared by the ROS package; no root repository license was found and no blanket relicensing of inherited assets is inferred.",
+    "existing_license_and_katex_assets_byte_preserved": true,
+    "readme_byte_preserved_against_head": true
+  },
+  "limitations": [
+    "Appearance, FK and browser-runtime tests do not establish hardware or continuous-time safety.",
+    "The existing velocity-filter comparison uses frozen-state projections; no new mobile-manipulator, perception, or hardware experiment was run.",
+    "The research page is an educational implementation plan; the cited external methods were neither installed nor reproduced."
+  ],
+  "manifest": "data/source_manifest.json",
+  "manifest_excludes_self": true
+}

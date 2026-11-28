@@ -299,11 +299,13 @@ def write_interactive_field(field, robot, destination, *, meshes=None, results=(
     from .comparison_view import build_comparison_data, comparison_fragment, comparison_script
     from .derivation_data import build_derivation_data
     from .derivation_tour import derivation_tour_script
+    from .visual_model import build_visual_model_data
     from .command_comparison import (build_command_comparison, command_comparison_fragment,
                                      command_comparison_script, comparison_math_fragment,
                                      plot_command_comparison)
     layer_data = build_joint_layer_data(robot, field, frames_data)
     comparison_data = build_comparison_data(robot, field, frames_data)
+    comparison_data['visual_model'] = build_visual_model_data(robot, frames_data)
     command_data = build_command_comparison(robot, field, frames_data)
     derivation_data = build_derivation_data(robot, field, frames_data, command_data=command_data)
     trace_indices = dict(arm=robot_trace_index, body=robot_trace_index+1)
@@ -361,14 +363,16 @@ code{font-size:14px}a{color:#0072B2}.pose-control{padding:8px 0}
 <p>From geometry to a safe joint-velocity constraint: learn one step at a time on the same six-joint arm.</p>
 <nav aria-label="Demo sections"><a href="#field-comparison">Interactive derivation</a> ·
 <a href="#command-comparison">Joint command table</a> ·
-<a href="#environment-detail">Joint-load explorer</a></nav>
+<a href="#environment-detail">Joint-load explorer</a> ·
+<a href="research.html">Wrist-camera research roadmap</a></nav>
 COMPARISON_FRAGMENT
 COMMAND_FRAGMENT
 <details id="environment-detail"><summary><strong>Explore joint loads and the full environment field</strong></summary>
 <p>Drag to rotate · Scroll to zoom · Click the legend to toggle shells, slices and arrows.
 The pose slider replays recorded arm states.</p>
 <p class="note">Each shell has constant barrier value <i>h</i> (m²); <i>h</i>=0 at buffered boundaries.
-This is not a force or clearance scale. Dark geometry: conservative arm collision boxes.
+This is not a force or clearance scale. Arm appearance uses the official visual meshes;
+collision checks continue to use the padded body boxes.
 Arrows: direction of increasing <i>h</i>.</p>
 ''' + pose_control + joint_layer_controls(layer_data) + figure_html + joint_layer_details() + '''</details>
 <details id="advanced-math-reference"><summary><strong>Detailed model reference (optional)</strong></summary>''' + comparison_math_fragment() + math_explanation_html(
@@ -385,6 +389,7 @@ function renderDetailedPose(){
   return Plotly.animate(fieldPlot,[String(poseControl.value)],{mode:'immediate',
     frame:{duration:0,redraw:true},transition:{duration:0}}).then(()=>{
       if(window.rebotUpdateJointLayer)window.rebotUpdateJointLayer();
+      if(window.rebotUpdateDetailedVisuals)window.rebotUpdateDetailedVisuals();
     });
 }
 if(poseControl)poseControl.addEventListener('input',()=>{
@@ -417,12 +422,14 @@ fitFieldView();window.addEventListener('resize',fitFieldView);
     document = document.replace('</body>', offline_math_assets()+joint_layer_script(layer_data,trace_indices)
                                 +comparison_script(comparison_data)+command_comparison_script(command_data)
                                 +derivation_tour_script(derivation_data)
+                                +'<script>'+(Path(__file__).resolve().parents[1]/'assets/detailed_visual.js').read_text()+'</script>'
                                 +math_render_script()+'</body>')
     Path(destination).write_text(document)
     Path(destination).with_name('joint_load_layer.json').write_text(json.dumps(layer_data, indent=2)+'\n')
     Path(destination).with_name('field_comparison_data.json').write_text(json.dumps(comparison_data, separators=(',', ':'))+'\n')
     Path(destination).with_name('command_comparison_data.json').write_text(json.dumps(command_data, indent=2)+'\n')
     Path(destination).with_name('derivation_data.json').write_text(json.dumps(derivation_data, separators=(',', ':'), allow_nan=False)+'\n')
+    Path(destination).with_name('visual_model_data.json').write_text(json.dumps(comparison_data['visual_model'], separators=(',', ':'), allow_nan=False)+'\n')
     plot_command_comparison(command_data, Path(destination).with_name('filter_command_comparison.png'))
     return dict(isosurface_levels_m2=[m['level'] for m in meshes],
                 mesh_triangle_counts=[len(m['faces']) for m in meshes],

@@ -1,0 +1,319 @@
+{
+  "schema_version": 1,
+  "verified_on": "2026-11-28",
+  "scope": "Targeted primary-source review of implementable 3D geometry, perception, planning, safety-filter, and reachability methods for a fixed-base six-joint reBot first and a mobile manipulator later.",
+  "verification_scope": "Paper metadata, abstracts and selected method/experiment sections, author or institutional repositories, and top-level license text were checked. Repositories and model binaries were not installed, executed, benchmarked, or audited for dependency licenses. This is a focused reading list, not an exhaustive systematic review.",
+  "implementation_status_in_this_workspace": "These entries identify external reference implementations. None of these eight external packages was installed or reproduced as part of this research task. The existing local Poisson and OBB-pair velocity filters are separate preliminary implementations.",
+  "methods": [
+    {
+      "id": "voxblox",
+      "title": "Voxblox: Incremental 3D Euclidean Signed Distance Fields for On-Board MAV Planning",
+      "year": 2017,
+      "venue": "IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)",
+      "publication_status": "Published conference paper; official repository citation verified.",
+      "paper_url": "https://helenol.github.io/publications/iros_2017_voxblox.pdf",
+      "code_url": "https://github.com/ethz-asl/voxblox",
+      "code_kind": "Author/institution reference mapping library; planning is a separate package.",
+      "license_verified": true,
+      "license": "BSD-3-Clause",
+      "license_url": "https://github.com/ethz-asl/voxblox/blob/master/LICENSE",
+      "representation": "Incremental voxel TSDF and Euclidean signed distance field (ESDF).",
+      "input": "Depth-derived point clouds with calibrated sensor poses.",
+      "output": "Surface mesh, ESDF distance queries and map data for downstream planners.",
+      "validation": "CPU mapping and onboard aerial-robot planning experiments; not articulated-arm validation.",
+      "limitations": [
+        "The repository's ROS integration is ROS 1; ROS 2 Jazzy integration requires adaptation.",
+        "Map discretization, occlusion, unknown space and pose error remain relevant; an ESDF is not itself a controller or safety certificate."
+      ],
+      "applicability": "Useful CPU baseline for comparing map accuracy and latency before GPU mapping. Combine its environment field with B601 whole-link geometry, calibrated camera transforms, and a separate safety filter.",
+      "jetson_evidence": "CPU-oriented implementation; no benchmark was run on the user's Jetson.",
+      "verification_urls": [
+        "https://helenol.github.io/publications/iros_2017_voxblox.pdf",
+        "https://raw.githubusercontent.com/ethz-asl/voxblox/master/README.md",
+        "https://github.com/ethz-asl/voxblox/blob/master/LICENSE"
+      ]
+    },
+    {
+      "id": "nvblox",
+      "title": "nvblox: GPU-Accelerated Incremental Signed Distance Field Mapping",
+      "year": 2024,
+      "venue": "IEEE International Conference on Robotics and Automation (ICRA)",
+      "publication_status": "Accepted ICRA 2024, verified on the author-submitted paper record.",
+      "paper_url": "https://arxiv.org/abs/2311.00626",
+      "code_url": "https://github.com/nvidia-isaac/nvblox",
+      "code_kind": "Official NVIDIA core library with separate Isaac ROS integration.",
+      "license_verified": true,
+      "license": "Apache-2.0 for the core nvblox repository; separately check integration and dependency licenses.",
+      "license_url": "https://github.com/nvidia-isaac/nvblox/blob/public/LICENSE.md",
+      "representation": "GPU voxel TSDF, ESDF, mesh and free-space information.",
+      "input": "Posed depth images and/or 3D LiDAR; optional color.",
+      "output": "Incremental 3D reconstruction and distance data queried by a planner or controller.",
+      "validation": "Paper includes mapping timings on Jetson Xavier AGX, desktop and laptop, plus robotic applications.",
+      "limitations": [
+        "It provides a map, not an articulated safety policy; unknown space and stale/dynamic observations need explicit treatment.",
+        "Select a release compatible with the actual Jetson, JetPack, CUDA and ROS versions; latest documentation alone does not establish compatibility."
+      ],
+      "applicability": "Strong first RGB-D mapping candidate for the reBot pipeline, retaining conservative link geometry and an independent CBF controller.",
+      "jetson_evidence": "Official documentation targets Jetson devices; the paper's Xavier timings are not timings for this installation.",
+      "verification_urls": [
+        "https://arxiv.org/abs/2311.00626",
+        "https://arxiv.org/html/2311.00626v2",
+        "https://raw.githubusercontent.com/nvidia-isaac/nvblox/public/README.md",
+        "https://github.com/nvidia-isaac/nvblox/blob/public/LICENSE.md",
+        "https://nvidia-isaac-ros.github.io/concepts/scene_reconstruction/nvblox/index.html"
+      ]
+    },
+    {
+      "id": "rdf",
+      "title": "Representing Robot Geometry as Distance Fields: Applications to Whole-body Manipulation",
+      "year": 2024,
+      "venue": "IEEE International Conference on Robotics and Automation (ICRA), pp. 15351-15357",
+      "publication_status": "Published conference paper; arXiv record and repository citation agree.",
+      "paper_url": "https://arxiv.org/abs/2307.00533",
+      "code_url": "https://github.com/yimingli1998/RDF",
+      "code_kind": "Author reference implementation, training utilities and pretrained Franka link models.",
+      "license_verified": true,
+      "license": "MIT for RDF code; repository separately identifies the provided URDF as Apache-licensed.",
+      "license_url": "https://github.com/yimingli1998/RDF/blob/master/LICENSE",
+      "representation": "Link-local signed distance approximations using Bernstein polynomials, composed through robot kinematics.",
+      "input": "Robot link meshes/kinematics, joint configurations and 3D query points.",
+      "output": "Robot-body SDF and gradients. The provided basis-function example uses analytic point gradients and numerical joint gradients.",
+      "validation": "Simulation and seven-axis Franka experiments, including dual-arm whole-body manipulation.",
+      "limitations": [
+        "Learned approximation error must be measured; continuity is not a conservative distance-error bound.",
+        "Whole-body refers to articulated link geometry; this does not establish wheeled-base dynamics or perception safety."
+      ],
+      "applicability": "Train new link fields from B601 meshes and validate distance/gradient errors against conservative geometric collision queries. Useful alternative to current OBB proxies, not a ready B601 controller.",
+      "jetson_evidence": "README tested Python 3.8 and PyTorch 1.13; no user-Jetson timing or current-stack compatibility was verified.",
+      "verification_urls": [
+        "https://arxiv.org/abs/2307.00533",
+        "https://raw.githubusercontent.com/yimingli1998/RDF/master/readme.md",
+        "https://github.com/yimingli1998/RDF/blob/master/LICENSE"
+      ]
+    },
+    {
+      "id": "ramp",
+      "title": "RAMP: Hierarchical Reactive Motion Planning for Manipulation Tasks Using Implicit Signed Distance Functions",
+      "year": 2023,
+      "venue": "IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)",
+      "publication_status": "Published conference paper; author-submitted record and author repository verified.",
+      "paper_url": "https://arxiv.org/abs/2305.10534",
+      "code_url": "https://github.com/vvasilo/RAMP",
+      "code_kind": "Author reference implementation; original Samsung project/repository links were unavailable when checked.",
+      "license_verified": true,
+      "license": "CC-BY-NC-4.0; noncommercial restriction applies to the licensed material.",
+      "license_url": "https://github.com/vvasilo/RAMP/blob/main/LICENSE",
+      "representation": "GPU robot-to-scene-point-cloud configuration SDF queries, shared by MPPI and a vector-field follower.",
+      "input": "URDF, joint limits/configuration, scene point cloud and goal.",
+      "output": "Predicted joint trajectories and reactive joint-velocity commands.",
+      "validation": "Simulated static/dynamic clutter and physical table-clearing experiments.",
+      "limitations": [
+        "Predictive MPPI plus a reactive vector-field controller is not a CBF-QP implementation.",
+        "Provided simulation uses legacy Isaac Gym; README specifies Ubuntu 18.04/20.04 and Python 3.6-3.8 prerequisites."
+      ],
+      "applicability": "Useful predictive nominal-planner comparison. Reuse the documented planner/follower API with new B601 geometry rather than assuming its simulator works on Jetson Jazzy. Evaluate sensor coverage and tracking errors explicitly.",
+      "jetson_evidence": "No supported Jetson/aarch64 deployment or timing verified.",
+      "verification_urls": [
+        "https://arxiv.org/abs/2305.10534",
+        "https://raw.githubusercontent.com/vvasilo/RAMP/main/README.md",
+        "https://raw.githubusercontent.com/vvasilo/RAMP/main/LICENSE",
+        "https://www.vassilisvasilopoulos.com/files/CV.pdf",
+        "https://research.samsung.com/blog/RAMP-Hierarchical-Reactive-Motion-Planning-for-Manipulation-Tasks-Using-Implicit-Signed-Distance-Functions"
+      ]
+    },
+    {
+      "id": "ncsb",
+      "title": "Neural Configuration-Space Barriers for Manipulation Planning and Control",
+      "year": 2026,
+      "venue": "IEEE Transactions on Automation Science and Engineering (T-ASE)",
+      "publication_status": "Accepted author manuscript explicitly identifies T-ASE 2026, DOI 10.1109/TASE.2026.3695092. Repository README still cites the 2025 preprint.",
+      "paper_url": "https://natanaso.github.io/ref/Long_NCDF_TASE26.pdf",
+      "preprint_url": "https://arxiv.org/abs/2503.04929",
+      "code_url": "https://github.com/ExistentialRobotics/NCSB",
+      "code_kind": "Author-lab reference code, training and pretrained xArm6 models, PyBullet planning/control examples.",
+      "license_verified": true,
+      "license": "MIT",
+      "license_url": "https://github.com/ExistentialRobotics/NCSB/blob/main/LICENSE",
+      "representation": "Learned environment and self-collision configuration-distance fields, bubble planning and distributionally robust CBF-QP.",
+      "input": "Joint state, point cloud, learned robot models and sampled estimation uncertainty.",
+      "output": "Configuration-space path and filtered tracking control; CDF distances use joint-space units, not metres.",
+      "validation": "Six-DOF xArm6 simulation and depth-camera hardware experiments; controllers evaluated at 50 Hz.",
+      "limitations": [
+        "Hardware moving-object velocities were estimated using ArUco markers; this is not general uninstrumented scene-flow estimation.",
+        "Neural uncertainty calibration and incomplete point-cloud coverage remain important; xArm6 weights do not transfer directly to B601."
+      ],
+      "applicability": "Closest research reference for the desired camera-to-high-DOF robust filter. Retrain B601 models and retain geometric validation. Test fixed-base first; mobile nonholonomy and torque feasibility require additional modeling.",
+      "jetson_evidence": "Training used an RTX 4090; no timing on this Jetson was verified.",
+      "verification_urls": [
+        "https://natanaso.github.io/ref/Long_NCDF_TASE26.pdf",
+        "https://arxiv.org/html/2503.04929v2",
+        "https://raw.githubusercontent.com/ExistentialRobotics/NCSB/main/README.md",
+        "https://github.com/ExistentialRobotics/NCSB/blob/main/LICENSE"
+      ]
+    },
+    {
+      "id": "safer_splat",
+      "title": "SAFER-Splat: A Control Barrier Function for Safe Navigation with Online Gaussian Splatting Maps",
+      "year": 2025,
+      "venue": "IEEE International Conference on Robotics and Automation (ICRA)",
+      "publication_status": "Accepted ICRA 2025, verified in author repository and paper record.",
+      "paper_url": "https://arxiv.org/abs/2409.09868",
+      "code_url": "https://github.com/chengine/safer-splat",
+      "code_kind": "Author reference code; master contains simulation/filter code and the ros branch provides ROS 2 mapping/filter nodes.",
+      "license_verified": true,
+      "license": "MIT for this repository; separate dependencies need their own review.",
+      "license_url": "https://github.com/chengine/safer-splat/blob/master/LICENSE",
+      "representation": "Online 3D Gaussian ellipsoids with geometry-aware CBF constraints and constraint pruning.",
+      "input": "RGB, time-of-flight point clouds, estimated camera poses, robot state and nominal acceleration.",
+      "output": "Gaussian reconstruction and filtered acceleration commands for an ellipsoidal robot.",
+      "validation": "Drone simulation and physical flights with onboard sensing but offboard RTX 4090 computation over Wi-Fi.",
+      "limitations": [
+        "A drone ellipsoid is not a six-joint arm: link geometry, Jacobians and self-collision must be added.",
+        "Paper reports 1-4 mm barrier violations caused by low-level tracking; visual reconstruction is not ground-truth occupancy."
+      ],
+      "applicability": "Useful later perception-representation comparison, after ESDF and geometric baselines. Preserve conservative unknown-space handling and assess online training cost and map/control latency.",
+      "jetson_evidence": "Reported online performance is not Jetson-only evidence; dependency stack includes Nerfstudio and CUDA/PyTorch versions that need porting checks.",
+      "verification_urls": [
+        "https://arxiv.org/abs/2409.09868",
+        "https://arxiv.org/html/2409.09868v2",
+        "https://raw.githubusercontent.com/chengine/safer-splat/master/README.md",
+        "https://github.com/chengine/safer-splat/blob/master/LICENSE",
+        "https://chengine.github.io/safer-splat"
+      ]
+    },
+    {
+      "id": "oscbf",
+      "title": "Safe, Task-Consistent Manipulation with Operational Space Control Barrier Functions",
+      "year": 2025,
+      "venue": "IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS), pp. 187-194",
+      "publication_status": "Published conference paper; official repository citation gives DOI 10.1109/IROS60139.2025.11246389.",
+      "paper_url": "https://arxiv.org/abs/2503.06736",
+      "code_url": "https://github.com/StanfordASL/oscbf",
+      "code_kind": "Author-lab reference implementation with PyBullet examples; uses CBFpy/JAX.",
+      "license_verified": true,
+      "license": "MIT",
+      "license_url": "https://github.com/StanfordASL/oscbf/blob/main/LICENSE",
+      "representation": "Operational-space objectives with task-consistent CBF constraints and robot kinematics/dynamics.",
+      "input": "URDF, manually supplied collision model, joint state, task and barrier definitions.",
+      "output": "Filtered commands for velocity-controlled or torque-controlled manipulators.",
+      "validation": "Manipulator simulation and hardware; author code supports both input orders.",
+      "limitations": [
+        "No complete RGB-D mapping front end; the provided Franka collision model is manually defined.",
+        "The README's planar PPR-chain mobile-base suggestion does not by itself enforce differential-drive nonholonomy."
+      ],
+      "applicability": "Strong next controller baseline for B601 after verifying URDF inertias and collision geometry. A future wheeled version needs an admissible-input mapping and acceleration/braking constraints.",
+      "jetson_evidence": "Author-tested Ubuntu 22.04 and Python 3.10/3.11; no user-Jetson benchmark or Python 3.12 validation was verified.",
+      "verification_urls": [
+        "https://arxiv.org/abs/2503.06736",
+        "https://raw.githubusercontent.com/StanfordASL/oscbf/main/README.md",
+        "https://github.com/StanfordASL/oscbf/blob/main/LICENSE",
+        "https://stanfordasl.github.io/oscbf/"
+      ]
+    },
+    {
+      "id": "rm4d",
+      "title": "RM4D: A Combined Reachability and Inverse Reachability Map for Common 6-/7-axis Robot Arms by Dimensionality Reduction to 4D",
+      "year": 2025,
+      "venue": "IEEE International Conference on Robotics and Automation (ICRA)",
+      "publication_status": "Presented at ICRA 2025 according to author repository; arXiv v1 retains its earlier submitted status.",
+      "paper_url": "https://arxiv.org/abs/2410.06968",
+      "code_url": "https://github.com/mrudorfer/rm4d",
+      "code_kind": "Original author implementation, not the rai-opensource GPU fork.",
+      "license_verified": true,
+      "license": "MIT",
+      "license_url": "https://github.com/mrudorfer/rm4d/blob/main/LICENSE",
+      "representation": "Compact sampled four-dimensional reachability/inverse-reachability map.",
+      "input": "Robot kinematics/joint limits, sampled collision-free configurations and desired TCP pose.",
+      "output": "Reachability estimates and candidate base positions for a desired tool pose.",
+      "validation": "UR5e and Franka map studies plus mobile-manipulator grasp/base-placement example.",
+      "limitations": [
+        "Reduction assumes 360-degree first-joint rotation and a 360-degree final wrist aligned with the tool approach vector; violations can introduce false positives.",
+        "A sampled reachable cell is not an environment-clear path, dynamic viability region, or payload/torque certificate."
+      ],
+      "applicability": "Useful reachability-map upgrade and future base-placement layer. Check B601 axis/TCP assumptions, build its own map, and verify candidates with IK and collision planning.",
+      "jetson_evidence": "Offline map construction can be separated from fast queries; no user-Jetson performance was measured.",
+      "verification_urls": [
+        "https://arxiv.org/abs/2410.06968",
+        "https://arxiv.org/html/2410.06968v1",
+        "https://raw.githubusercontent.com/mrudorfer/rm4d/main/README.md",
+        "https://raw.githubusercontent.com/mrudorfer/rm4d/main/LICENSE",
+        "https://mrudorfer.github.io/rm4d/"
+      ]
+    }
+  ],
+  "supporting_reading": [
+    {
+      "id": "mpc_cbf_foundation",
+      "title": "Safety-Critical Model Predictive Control with Discrete-Time Control Barrier Function",
+      "year": 2021,
+      "venue": "American Control Conference (ACC), pp. 3882-3889",
+      "paper_url": "https://hybrid-robotics.berkeley.edu/publications/ACC2021_MPC_CBF.pdf",
+      "code_url": "https://github.com/HybridRobotics/MPC-CBF",
+      "license_verified": true,
+      "license": "MIT",
+      "license_url": "https://github.com/HybridRobotics/MPC-CBF/blob/master/LICENSE",
+      "role": "Explicit predictive-CBF foundation: impose h(x[k+1]) >= (1-gamma) h(x[k]) along a modeled horizon, together with input constraints.",
+      "code_status": "Archived author reference implementation using MATLAB, YALMIP and IPOPT; examples are a 2D double integrator and racing, not a camera-guided manipulator.",
+      "limitation": "A B601 implementation needs articulated geometry, model and solver adaptation; sampled horizon constraints alone do not establish continuous inter-sample safety.",
+      "verification_urls": [
+        "https://hybrid-robotics.berkeley.edu/publications/ACC2021_MPC_CBF.pdf",
+        "https://raw.githubusercontent.com/HybridRobotics/MPC-CBF/master/README.md",
+        "https://github.com/HybridRobotics/MPC-CBF/blob/master/LICENSE"
+      ]
+    },
+    {
+      "id": "neural_jsdf",
+      "title": "Neural Joint Space Implicit Signed Distance Functions for Reactive Robot Manipulator Control",
+      "year": "2022 online DOI; consult final IEEE issue metadata for issue year",
+      "venue": "IEEE Robotics and Automation Letters (RA-L), DOI 10.1109/LRA.2022.3227860",
+      "paper_url": "https://ieeexplore.ieee.org/document/9976191",
+      "code_url": "https://github.com/epfl-lasa/Neural-JSDF",
+      "license_verified": false,
+      "license": "No top-level license was visible in the checked author repository; reuse terms were not verified.",
+      "role": "Historical robot-centric neural-distance reference; repository visibly provides a learning directory and identifies the paper.",
+      "code_status": "Author code is public; completeness of the complete real-time controller and B601 portability were not established.",
+      "verification_urls": [
+        "https://github.com/epfl-lasa/Neural-JSDF",
+        "https://infoscience.epfl.ch/entities/publication/f7e1a1d2-b530-42c1-9a96-e783d856a144"
+      ]
+    },
+    {
+      "id": "predictive_poisson_humanoids",
+      "title": "Geometry-Aware Predictive Safety Filters on Humanoids: From Poisson Safety Functions to CBF Constrained MPC",
+      "year": 2025,
+      "venue": "IEEE-RAS International Conference on Humanoid Robots",
+      "paper_url": "https://arxiv.org/abs/2508.11129",
+      "code_url": null,
+      "license_verified": false,
+      "role": "Direct theoretical extension from static Poisson fields to moving boundaries, geometry lifting and CBF-constrained predictive control.",
+      "code_status": "Paper/author material verified; no public author implementation was verified in this search. Do not list as a ready code baseline.",
+      "verification_urls": ["https://arxiv.org/abs/2508.11129"]
+    }
+  ],
+  "foundations_and_read_order": [
+    {"order": 1, "read": ["voxblox", "nvblox"], "purpose": "Understand world-space 3D TSDF versus ESDF, observed free space, calibration, voxel resolution and map latency."},
+    {"order": 2, "read": ["rdf", "ramp"], "purpose": "Understand articulated robot-body geometry and why a 3D scene alone does not describe the six-dimensional configuration-space collision set."},
+    {"order": 3, "read": ["oscbf", "ncsb"], "purpose": "Connect distance gradients to admissible joint commands; distinguish velocity and torque input models, learned approximation errors and uncertainty."},
+    {"order": 4, "read": ["mpc_cbf_foundation", "ramp", "predictive_poisson_humanoids"], "purpose": "Distinguish one-step filtering, MPPI prediction and CBF-constrained MPC; inspect braking, feasibility, moving obstacles and inter-sample safety."},
+    {"order": 5, "read": ["rm4d"], "purpose": "Add tool-pose reachability and inverse reachability for base placement without treating either as dynamic safe reachability."},
+    {"order": 6, "read": ["safer_splat"], "purpose": "Explore richer online scene representations after a measured ESDF and geometric baseline is working."}
+  ],
+  "implementation_recommendation": {
+    "first_fixed_base": "Keep current geometric and Poisson baselines; add calibrated RGB-D observations and a compatible nvblox release. Query a full 3D ESDF around all modeled links, retain unknown-space and map-age checks, then compare a velocity CBF using the same nominal planner and geometry.",
+    "research_comparison": "Compare robot-centric RDF or NCSB after collecting B601-specific distance data and validating held-out worst-case distance/gradient error. Use RAMP for a predictive nominal-planner comparison; use OSCBF for task-consistent velocity/torque filtering. These roles are complementary, not interchangeable.",
+    "mobile_extension": "Use RM4D only to propose base placements. Model the actual wheeled-base input map, include base/torso/arm/gripper/payload geometry, maintain a common world frame and camera timestamps, and add stopping/acceleration/torque/stability constraints before interpreting a filter as whole-body protection.",
+    "unit_and_dimension_checks": [
+      "An environment ESDF is a function of a 3D spatial point and normally returns metres; an articulated configuration has six joint variables, even though its workspace is drawn in 3D.",
+      "For a differentiable scene distance phi and link point p_i(q), b_i(q,t)=phi(p_i(q),t)-margin and db_i/dt=grad(phi)^T J_i(q) qdot + partial(phi)/partial(t). All relevant geometry rows are needed.",
+      "A learned configuration-space distance measures distance to contact in the chosen joint-coordinate metric; do not substitute its radian-valued threshold for a metre-valued ESDF margin.",
+      "Higher robot DOF is different from higher barrier relative degree. Torque/acceleration control requires the appropriate dynamic barrier derivative and a valid admissible-input set.",
+      "Kinematic reachability, collision-free planning and dynamic robust controlled invariance answer different questions; a reachability heatmap is not an HJ viability certificate."
+    ]
+  },
+  "verification_notes": [
+    "Top-level license verification does not certify the licenses of bundled URDFs, datasets, pretrained weights or dependencies.",
+    "Author-reported rates and successes are tied to their hardware, geometry, sensors and test distributions; none establishes reBot/Jetson performance.",
+    "Public code availability was checked as of the verification date; no claim is made that every advertised experiment is immediately reproducible on the current ROS 2 Jazzy/aarch64 stack.",
+    "GitHub API metadata could not be refreshed after its anonymous rate limit was reached. No authenticated API calls, credentials, paid search or rate-limit workarounds were used. Repository commit hashes are consequently not asserted."
+  ]
+}

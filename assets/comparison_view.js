@@ -11,9 +11,21 @@ const status = document.getElementById('comparison-status');
 const activeMarginLabel = document.getElementById('comparison-active-margin');
 const offsetSelector=document.getElementById('comparison-active-offset');
 const sceneSelector=document.getElementById('comparison-scene-layout');
+const focusArmButton=document.getElementById('comparison-focus-arm');
+const resetSceneButton=document.getElementById('comparison-reset-scene');
+const visualToggle=document.getElementById('comparison-show-visual');
+const proxyToggle=document.getElementById('comparison-show-proxies');
+const meshOpacity=document.getElementById('comparison-mesh-opacity');
+const meshOpacityLabel=document.getElementById('comparison-mesh-opacity-value');
+const visualModelNote=document.getElementById('comparison-visual-model-note');
 let activeMargin=data.default_margin_m;
 const initial = data.frames[0];
 const dynamicMeshes = [], dynamicLines = [], environmentIndices = [], marginIndices = [];
+const dynamicVisualMeshes=[],proxyIndices=[];
+const visualModel=data.visual_model;
+const hasVisual=Boolean(visualModel?.meshes?.length&&visualModel.frames?.length===data.frames.length&&
+  visualModel.frames.every(frame=>frame.transforms?.length===visualModel.meshes.length));
+let visualCacheIndex=-1,visualCache=null;
 const commandLines=[],commandHeads=[];
 const derivationTraces=[];
 let commandPayload=null,graphReady=false;
@@ -36,6 +48,21 @@ function meshTrace(mesh, attributes) {
           lighting:{ambient:.8,diffuse:.55,specular:.05},
           hoverinfo:'name',showlegend:false,...attributes};
 }
+function visualVertices(frameIndex){
+  if(!hasVisual)return [];
+  if(visualCacheIndex===frameIndex)return visualCache;
+  const transforms=visualModel.frames[frameIndex].transforms;
+  visualCache=visualModel.meshes.map((mesh,index)=>{
+    const transform=transforms[index],r=transform.rotation_world_from_link,t=transform.translation_world_m;
+    return mesh.vertices.map(p=>[
+      r[0][0]*p[0]+r[0][1]*p[1]+r[0][2]*p[2]+t[0],
+      r[1][0]*p[0]+r[1][1]*p[1]+r[1][2]*p[2]+t[1],
+      r[2][0]*p[0]+r[2][1]*p[1]+r[2][2]*p[2]+t[2]
+    ]);
+  });
+  visualCacheIndex=frameIndex;
+  return visualCache;
+}
 function edges(vertices) {
   const x=[],y=[],z=[];
   for(const edge of data.arm_edges){
@@ -44,22 +71,36 @@ function edges(vertices) {
   }
   return {x,y,z};
 }
+const initialVisual=visualVertices(0);
 for(const scene of ['scene','scene2']){
   if(scene==='scene') for(const mesh of data.environment){
     environmentIndices.push(traces.length);
-    traces.push(meshTrace(mesh,{scene,color:mesh.color,opacity:.11,
+    traces.push(meshTrace(mesh,{scene,color:mesh.color,opacity:.08,
                                name:`Environment h = ${mesh.level_m2} m²`}));
   }
   for(const obstacle of data.obstacles){
     traces.push(meshTrace(obstacle,{scene,color:'#B85042',opacity:.68,
                                    name:`Physical obstacle: ${obstacle.name}`}));
   }
+  if(hasVisual)for(const [meshIndex,mesh]of visualModel.meshes.entries()){
+    dynamicVisualMeshes.push({index:traces.length,meshIndex,scene});
+    traces.push(meshTrace({vertices:initialVisual[meshIndex],faces:mesh.faces},
+      {scene,color:mesh.color,opacity:mesh.opacity??1,flatshading:false,
+       lighting:{ambient:.5,diffuse:.85,specular:.3,roughness:.55,fresnel:.08},
+       lightposition:{x:120,y:-180,z:240},
+       name:`Official visual · ${mesh.body_name} · ${mesh.material_name||mesh.name}`,
+       meta:{role:'urdf-visual',body_name:mesh.body_name,material_name:mesh.material_name||mesh.name,
+             visual_mesh_index:meshIndex}}));
+  }
+  proxyIndices.push(traces.length);
   dynamicMeshes.push({index:traces.length,kind:'arm',scene});
   traces.push(meshTrace({vertices:initial.arm_vertices,faces:data.arm_faces},
-                        {scene,facecolor:data.arm_face_colors,opacity:.96,name:'Articulated oriented arm boxes'}));
+                        {scene,facecolor:data.arm_face_colors,opacity:hasVisual ? .32 : .96,visible:!hasVisual,
+                         name:'Collision proxies · padded body boxes',meta:{role:'collision-proxy'}}));
+  proxyIndices.push(traces.length);
   dynamicLines.push({index:traces.length,kind:'edges',scene});
   traces.push({type:'scatter3d',...edges(initial.arm_vertices),scene,mode:'lines',
-               line:{color:'#223648',width:1.3},showlegend:false,hoverinfo:'skip'});
+               line:{color:'#223648',width:1.3},visible:!hasVisual,showlegend:false,hoverinfo:'skip'});
   dynamicLines.push({index:traces.length,kind:'nearest',scene});
   traces.push({type:'scatter3d',...coordinates(initial.nearest.points_m),scene,mode:'lines+markers',
                line:{color:'#AA3377',width:5,dash:'dash'},marker:{color:'#AA3377',size:3},
@@ -68,7 +109,7 @@ for(const scene of ['scene','scene2']){
     const shell=initial.shells[index],margin=data.margins_m[index];
     marginIndices.push(traces.length);
     dynamicMeshes.push({index:traces.length,kind:'shell',marginIndex:index,scene});
-    traces.push(meshTrace(shell,{scene,color:shell.color,opacity:.24,
+    traces.push(meshTrace(shell,{scene,color:shell.color,opacity:.16,
                                  visible:margin===data.default_margin_m,
                                  name:`Robot exterior distance = ${margin} m`}));
   }
@@ -110,7 +151,66 @@ const layout={height:700,margin:{l:0,r:0,t:55,b:15},paper_bgcolor:'white',
 await Plotly.newPlot(graph,traces,layout,{displaylogo:false,responsive:true,
   toImageButtonOptions:{format:'png',filename:'rebot-field-comparison',scale:2}});
 graphReady=true;
+if(visualToggle){visualToggle.checked=hasVisual;visualToggle.disabled=!hasVisual;}
+if(proxyToggle)proxyToggle.checked=!hasVisual;
+if(meshOpacity)meshOpacity.disabled=!hasVisual;
+if(visualModelNote){
+  const compatibility=visualModel?.compatibility;
+  const mismatch=compatibility&&(compatibility.compatible===false||compatibility.kinematics_match===false||compatibility.source_meshes_match===false);
+  visualModelNote.textContent=hasVisual?
+    `Official URDF materials · ${visualModel.meshes.length} visual parts. Display tessellation is simplified.`:
+    'Visual mesh data are unavailable in this cached page; collision proxies are shown.';
+  if(mismatch){
+    visualModelNote.textContent+=' Visual source differs from the controller model; '+(compatibility.note||'appearance does not replace the safety geometry.');
+    visualModelNote.classList.add('comparison-visual-mismatch');
+  }
+}
+if(visualToggle)visualToggle.addEventListener('change',()=>{
+  if(dynamicVisualMeshes.length)Plotly.restyle(graph,{visible:visualToggle.checked},dynamicVisualMeshes.map(item=>item.index));
+  graph.dataset.visualMeshes=String(visualToggle.checked);
+});
+if(proxyToggle)proxyToggle.addEventListener('change',()=>{
+  Plotly.restyle(graph,{visible:proxyToggle.checked},proxyIndices);
+  graph.dataset.collisionProxies=String(proxyToggle.checked);
+});
+if(meshOpacity)meshOpacity.addEventListener('input',()=>{
+  const opacity=Math.max(.25,Math.min(1,Number(meshOpacity.value)||1));
+  meshOpacityLabel.textContent=Math.round(opacity*100)+'%';
+  if(dynamicVisualMeshes.length)Plotly.restyle(graph,
+    {opacity:dynamicVisualMeshes.map(item=>(visualModel.meshes[item.meshIndex].opacity??1)*opacity)},
+    dynamicVisualMeshes.map(item=>item.index));
+});
+graph.dataset.visualMeshes=String(hasVisual);graph.dataset.collisionProxies=String(!hasVisual);
 let cameraBusy=false;
+async function setComparisonCamera(next,mode){
+  cameraBusy=true;
+  try{
+    await Plotly.relayout(graph,{'scene.camera':clone(next),'scene2.camera':clone(next)});
+    graph.dataset.cameraFocus=mode;
+  }finally{cameraBusy=false;}
+}
+function armFocusCamera(){
+  const lower=[Infinity,Infinity,Infinity],upper=[-Infinity,-Infinity,-Infinity];
+  const vertices=hasVisual?visualVertices(current).flat():data.frames[current].arm_vertices;
+  for(const point of vertices)for(let axis=0;axis<3;axis++){
+    lower[axis]=Math.min(lower[axis],point[axis]);upper[axis]=Math.max(upper[axis],point[axis]);
+  }
+  const scene=graph.layout[graph.dataset.sceneView==='distance'?'scene2':'scene'];
+  const center={};
+  for(const [index,key]of ['x','y','z'].entries()){
+    const range=scene[key+'axis'].range,aspect=scene.aspectratio?.[key]??1;
+    // Plotly/gl-plot3d normalizes the domain about the axis-range midpoint,
+    // then multiplies by its aspect ratio. Camera coordinates are not metres.
+    center[key]=((lower[index]+upper[index])/2-(range[0]+range[1])/2)/(range[1]-range[0])*aspect;
+  }
+  return {center,eye:{x:center.x+1.05,y:center.y-1.2,z:center.z+.9},up:{x:0,y:0,z:1}};
+}
+if(focusArmButton)focusArmButton.addEventListener('click',()=>{
+  setComparisonCamera(armFocusCamera(),'arm').catch(error=>console.error('Arm focus camera',error));
+});
+if(resetSceneButton)resetSceneButton.addEventListener('click',()=>{
+  setComparisonCamera(camera,'scene').catch(error=>console.error('Reset scene camera',error));
+});
 graph.on('plotly_relayout',event=>{
   if(cameraBusy)return;
   const keys=Object.keys(event);
@@ -204,6 +304,14 @@ async function applyPose(index){
     while(pending!==null){
       const next=pending;pending=null;
       const frame=data.frames[next];
+      if(hasVisual){
+        const vertices=visualVertices(next),updates={x:[],y:[],z:[]};
+        for(const item of dynamicVisualMeshes){
+          const payload=coordinates(vertices[item.meshIndex]);
+          for(const key of Object.keys(updates))updates[key].push(payload[key]);
+        }
+        await Plotly.restyle(graph,updates,dynamicVisualMeshes.map(item=>item.index));
+      }
       const updates={x:[],y:[],z:[],i:[],j:[],k:[]};
       for(const item of dynamicMeshes){
         const mesh=item.kind==='arm'?{vertices:frame.arm_vertices,faces:data.arm_faces}:frame.shells[item.marginIndex];

@@ -35,6 +35,35 @@ The unrelated ROS controller and low-level hardware SDK repositories are not
 needed to view this page and are not part of its static runtime. Their presence
 in a development workstation does not make them part of this publication.
 
+## Official Seeed DM appearance added 28 November 2026
+
+The display adapter now reads the DM URDF and its material colours from
+[Seeed-Projects/reBotArmController_ROS2](https://github.com/Seeed-Projects/reBotArmController_ROS2)
+at pinned revision `4a2b31b569d7856ea310b90f24f7de82374dbc75`, specifically
+[`src/rebotarm_bringup/description/DM/urdf/ReBot_Arm_DM.urdf`](https://github.com/Seeed-Projects/reBotArmController_ROS2/blob/4a2b31b569d7856ea310b90f24f7de82374dbc75/src/rebotarm_bringup/description/DM/urdf/ReBot_Arm_DM.urdf).
+The source adapter independently computes URDF forward kinematics and rejects
+replay if any link differs from the recorded model by more than 1 micrometre
+or 1 microradian. All 34 referenced STL files have the same SHA-256 hashes as
+the previously pinned Yang-Ci model. Source hashes and per-pose transform
+diagnostics accompany the exported visual-model data.
+
+The Seeed package metadata declares Apache-2.0; no repository-root licence
+file was found at this revision. That declaration is recorded separately and
+is not used to replace the inherited asset terms. Redistributed simplified
+geometry is derived from the byte-identical Yang-Ci copy under its retained
+CERN-OHL-W-2.0 notices. Preferred original sources for both copies are linked
+above; `scripts/fetch_model.sh` fetches both pinned source revisions.
+
+**Modification notice:** visual meshes are simplified by deterministic vertex
+clustering for browser display; all material parts and URDF visual transforms
+are retained. Small details and topology can change. Reported nearest-vertex
+deviation is a display diagnostic, not a surface Hausdorff error or collision
+coverage bound. The visual meshes, lighting and opacity controls do not change
+the recorded collision proxies, Poisson field, inertials, payload estimates,
+controller, joint states or trajectories. No camera mount or carried-object
+geometry is invented. The official hardware driver is never executed by this
+adapter or the static page.
+
 ## Rendering and plotting components
 
 | Component | Version used | Provenance and retained notice |
